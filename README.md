@@ -2,7 +2,16 @@
 > Summary description here.
 
 
-This file will become your README and also the index of your documentation.
+Given a Neural Network, we use Thompson Sampling to find an optimal configuration of sub-networks that best predicts the target function. 
+
+Three steps:
+1. build a neural Network that allows for 'attention', i.e. external dropout; generate a target function from that Network by randomly sampling a hidden attention vector. The goal of optimizing the network on the target data becomes a question of recovering the hidden attention vector.
+2. Train a Thompson Sampling Solver to experiment with different Network configurations, update the sampler on the error the network produces.
+3. wait for convergence; Note that the network itself remains unchanged wrgt it's parameters, only the TS learns how to optimize given the error.
+
+
+The given example is trivial in that it uses a single hidden attention vector; and in that we sample the target function from subnetworks of the predictive Network; We also use no contextual information whatsoever. It's a Proof of concept, however, that might be expanded into a nonlinear contextual attention sampler that prodcues 'good enough' predictions without having to train a neural network (or by training the network via Gradient Descent after finding distribution over subsampled networks).
+
 
 ## Install
 
@@ -46,23 +55,19 @@ np.random.seed(4)
 num_units = 4
 ```
 
+# Initialise the Network, sample a hidden attention vector, produce target function
+
+## initialize the Model
+
+as we can see, it's a model with num_units neurons in two attention dropout layers and two dense layers
+
 ```
 model = NeuralNetwork(loss='mean-square-error',randomMultiplier=1)
 
 model.addLayer(inputDimension=1, units=10, activation='tanh')#,layer_type = DropoutLayer)
-
 model.addLayer( units=num_units, activation='tanh')
-
-
-
-
 model.addLayer( units=1, activation='tanh',layer_type = AttentionDropoutLayer)
-
 model.addLayer( units=num_units, activation='tanh')
-
-
-
-
 model.addLayer( units=1, activation='',layer_type = AttentionDropoutLayer)
 model
 
@@ -82,6 +87,8 @@ model
 
 
 
+## Sample hidden attention from binomial distribution of size weights matrix
+
 ```
 X = np.atleast_2d(np.linspace(-1,1,100))
 attention = np.ones(model.layers[2].weights.shape)
@@ -95,7 +102,7 @@ full_attention = np.ones(model.layers[2].weights.shape)
 
 ```
 
-Generate the truth function from neural network by using a predefined attention
+## Generate the truth function from neural network by using a predefined attention
 
 ```
 yhat = []
@@ -123,7 +130,7 @@ yhat_full = np.array(yhat_full)
 ```
 
 ```
-plt.plot(X.squeeze(), yhat.squeeze(),'x',label='sub-network')
+plt.plot(X.squeeze(), yhat.squeeze(),'x',label='target')
 plt.plot(X.squeeze(), yhat_full.squeeze(),'x',label='full network')
 plt.legend()
 ```
@@ -131,13 +138,15 @@ plt.legend()
 
 
 
-    <matplotlib.legend.Legend at 0x7fa18c9f2c10>
+    <matplotlib.legend.Legend at 0x7fdd11bdb590>
 
 
 
 
-![svg](docs/images/output_14_1.svg)
+![svg](docs/images/output_16_1.svg)
 
+
+# Define Attentional TS (ToDo: move to package)
 
 ```
 class IndependentAttentionTS():
@@ -204,6 +213,8 @@ dts.arms, len(dts.arms), dts.ts.num_options
 
 
 
+## check if the hidden attention is in the sampler's arms
+
 ```
 [dts.get_arm() for i in range(10)], attention in dts.arms
 ```
@@ -211,9 +222,11 @@ dts.arms, len(dts.arms), dts.ts.num_options
 
 
 
-    ([10, 7, 1, 12, 1, 14, 4, 9, 2, 12], True)
+    ([14, 3, 0, 4, 8, 0, 3, 6, 11, 10], True)
 
 
+
+# Train the sampler
 
 ```
 epochs = 1
@@ -242,6 +255,10 @@ for i in range(epochs):
 
 ```
 
+# Test the samplers' convergence choices
+
+Show the most likely arms, and check it it's close to hidden attention
+
 ```
 a = [dts.get_attention(dts.get_arm()) for i in range(100)]
 np.mean(a,0) > 0.5, np.mean(a,0), attention
@@ -251,10 +268,12 @@ np.mean(a,0) > 0.5, np.mean(a,0), attention
 
 
     (array([False,  True, False,  True]),
-     array([0.01, 0.96, 0.05, 1.  ]),
+     array([0., 1., 0., 1.]),
      array([[0, 1, 0, 1]]))
 
 
+
+Error Decreases:
 
 ```
 plt.plot(np.array(errors).squeeze())
@@ -263,13 +282,15 @@ plt.plot(np.array(errors).squeeze())
 
 
 
-    [<matplotlib.lines.Line2D at 0x7fa18bd7c0d0>]
+    [<matplotlib.lines.Line2D at 0x7fdd10f1dd50>]
 
 
 
 
-![svg](docs/images/output_20_1.svg)
+![svg](docs/images/output_27_1.svg)
 
+
+# Plot the recovered function predictions
 
 ```
 pred_samples = 10
@@ -290,11 +311,7 @@ for i in range(pred_samples):
         predictions += [model.forward(x, attention_new).squeeze()]
 
 
-        #error = (y - prediction)**2
 
-        #iats.update(attention.squeeze(), error.squeeze())
-        #gcssm.update(arms['arm_ix'], x.squeeze(), error.squeeze())
-        
     ensemble_preds.append(np.array(predictions))
 
 ```
@@ -308,20 +325,22 @@ plt.plot(yhat.squeeze())
 
 
 
-    [<matplotlib.lines.Line2D at 0x7fa18bd6bbd0>]
+    [<matplotlib.lines.Line2D at 0x7fdd10edecd0>]
 
 
 
 
-![svg](docs/images/output_22_1.svg)
+![svg](docs/images/output_30_1.svg)
 
+
+# Plot the Params
 
 ```
 dts.ts.plot_params()
 ```
 
 
-![svg](docs/images/output_23_0.svg)
+![svg](docs/images/output_32_0.svg)
 
 
 ```
