@@ -1,10 +1,8 @@
 {
-  "Notebook": {
-    "Export to modules": "/export",
-    "Convert to html": "/export2html",
-    "Show doc": "/showdoc",
-    "Test functions": "/test",
-    "Core functions": "/core",
-    "Command line functions": "/cli"
+  "neuralThompsonTrainer": {
+    "Overview": "/",
+    "module name here": "/core",
+    "thompson_sampler": "/thompson_sampler",
+    "neural_networks": "/neural_networks"
   }
 }
