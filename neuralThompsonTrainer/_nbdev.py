@@ -3,13 +3,22 @@
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"GaussianBandit": "01_thompson_sampler.ipynb",
+         "BayesLinReg": "01_thompson_sampler.ipynb",
+         "BatchBayesLinReg": "01_thompson_sampler.ipynb",
+         "AbstractContextualSolver": "01_thompson_sampler.ipynb",
+         "GaussianContextualSampler": "01_thompson_sampler.ipynb",
+         "GaussianCategoricalBandit": "01_thompson_sampler.ipynb",
+         "GaussianUniversalContextualSampler": "01_thompson_sampler.ipynb",
+         "contextual_numerical_bandit": "01_thompson_sampler.ipynb",
+         "contextual_numerical_get_optimal_arm": "01_thompson_sampler.ipynb",
          "ActivationDoesNotExist": "02_neural_networks.ipynb",
          "InputDimensionNotCorrect": "02_neural_networks.ipynb",
          "LossFunctionNotDefined": "02_neural_networks.ipynb",
          "DenseLayer": "02_neural_networks.ipynb",
          "NeuralNetwork": "02_neural_networks.ipynb",
          "DropoutLayer": "02_neural_networks.ipynb",
-         "AttentionDropoutLayer": "02_neural_networks.ipynb"}
+         "AttentionDropoutLayer": "02_neural_networks.ipynb",
+         "NeuralNetworkRegressionEnsemble": "02_neural_networks.ipynb"}
 
 modules = ["thompson_sampler.py",
            "neural_networks.py"]
